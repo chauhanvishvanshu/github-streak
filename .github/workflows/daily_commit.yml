@@ -1,0 +1,33 @@
+name: Daily Auto Commit
+
+
+on:
+schedule:
+- cron: '0 10 * * *' # Daily 10 AM UTC
+workflow_dispatch: # Manual trigger possible
+
+
+jobs:
+daily-commit:
+runs-on: ubuntu-latest
+
+
+steps:
+- name: Checkout Repository
+uses: actions/checkout@v3
+
+
+- name: Pick Random File and Move to Daily
+run: |
+mkdir -p daily
+FILE=$(ls staging/*.cpp | shuf -n 1)
+cp "$FILE" "daily/$(date +%F)_$(basename $FILE)"
+
+
+- name: Commit and Push Changes
+run: |
+git config user.name "github-actions[bot]"
+git config user.email "github-actions[bot]@users.noreply.github.com"
+git add daily/*
+git commit -m "Daily commit: $(date +%F)" || echo "No changes to commit"
+git push
