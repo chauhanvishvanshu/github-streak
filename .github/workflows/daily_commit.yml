@@ -13,7 +13,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
         with:
-          persist-credentials: false   # Important to allow token push
+          persist-credentials: false   # Important for token push
 
       - name: Prepare Daily Folder
         run: |
