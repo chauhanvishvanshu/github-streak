@@ -1,33 +1,40 @@
-name: Daily Auto Commit
-
+name: Daily Auto Commit (Sequential)
 
 on:
-schedule:
-- cron: '0 10 * * *' # Daily 10 AM UTC
-workflow_dispatch: # Manual trigger possible
-
+  schedule:
+    - cron: '0 10 * * *'  # Daily 10 AM UTC
+  workflow_dispatch:
 
 jobs:
-daily-commit:
-runs-on: ubuntu-latest
+  daily-commit:
+    runs-on: ubuntu-latest
 
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
 
-steps:
-- name: Checkout Repository
-uses: actions/checkout@v3
+    - name: Prepare Daily Folder
+      run: |
+        mkdir -p daily
+        mkdir -p .tracker
+        if [ ! -f .tracker/last_index ]; then echo 0 > .tracker/last_index; fi
 
+    - name: Pick Sequential File from Staging
+      shell: bash
+      run: |
+        FILES=($(ls staging/*.cpp))
+        NUM_FILES=${#FILES[@]}
+        LAST_INDEX=$(cat .tracker/last_index)
+        FILE_TO_COPY=${FILES[$LAST_INDEX]}
+        cp "$FILE_TO_COPY" "daily/$(date +%F)_$(basename "$FILE_TO_COPY")"
+        # Update index
+        NEXT_INDEX=$(( (LAST_INDEX + 1) % NUM_FILES ))
+        echo $NEXT_INDEX > .tracker/last_index
 
-- name: Pick Random File and Move to Daily
-run: |
-mkdir -p daily
-FILE=$(ls staging/*.cpp | shuf -n 1)
-cp "$FILE" "daily/$(date +%F)_$(basename $FILE)"
-
-
-- name: Commit and Push Changes
-run: |
-git config user.name "github-actions[bot]"
-git config user.email "github-actions[bot]@users.noreply.github.com"
-git add daily/*
-git commit -m "Daily commit: $(date +%F)" || echo "No changes to commit"
-git push
+    - name: Commit and Push Changes
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git add daily/* .tracker/last_index
+        git commit -m "Daily commit: $(date +%F)" || echo "No changes to commit"
+        git push
