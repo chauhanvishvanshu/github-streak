@@ -1,8 +1,8 @@
-name: Daily Auto Commit (Sequential)
+name: Daily Auto Commit (Nested Folders)
 
 on:
   schedule:
-    - cron: '0 10 * * *'  # Daily 10 AM UTC
+    - cron: '1 19 * * *'  # Daily 12:31 AM IST
   workflow_dispatch:
 
 jobs:
@@ -13,29 +13,47 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
         with:
-          persist-credentials: false   # Important for token push
+          persist-credentials: false
 
-      - name: Prepare Daily Folder
+      - name: Prepare Daily Folder and Tracker
         run: |
           mkdir -p daily
           mkdir -p .tracker
-          if [ ! -f .tracker/last_index ]; then echo 0 > .tracker/last_index; fi
+          if [ ! -f .tracker/last_folder_index ]; then echo 0 > .tracker/last_folder_index; fi
+          if [ ! -f .tracker/last_file_index ]; then echo 0 > .tracker/last_file_index; fi
 
-      - name: Pick Sequential File from Staging
+      - name: Pick Sequential File from Nested Folders
         shell: bash
         run: |
-          FILES=($(ls staging/*.cpp))
+          FOLDERS=($(ls -d staging/*/))
+          NUM_FOLDERS=${#FOLDERS[@]}
+          LAST_FOLDER=$(cat .tracker/last_folder_index)
+          CURRENT_FOLDER=${FOLDERS[$LAST_FOLDER]}
+
+          FILES=($(ls "$CURRENT_FOLDER"/*.cpp))
           NUM_FILES=${#FILES[@]}
-          LAST_INDEX=$(cat .tracker/last_index)
-          FILE_TO_COPY=${FILES[$LAST_INDEX]}
-          cp "$FILE_TO_COPY" "daily/$(date +%F)_$(basename "$FILE_TO_COPY")"
-          NEXT_INDEX=$(( (LAST_INDEX + 1) % NUM_FILES ))
-          echo $NEXT_INDEX > .tracker/last_index
+          LAST_FILE=$(cat .tracker/last_file_index)
+          FILE_TO_COPY=${FILES[$LAST_FILE]}
+
+          FOLDER_NAME=$(basename "$CURRENT_FOLDER")
+          mkdir -p "daily/$FOLDER_NAME"
+          cp "$FILE_TO_COPY" "daily/$FOLDER_NAME/$(date +%F)_$(basename "$FILE_TO_COPY")"
+
+          # Update indices
+          NEXT_FILE=$((LAST_FILE + 1))
+          NEXT_FOLDER=$LAST_FOLDER
+          if [ $NEXT_FILE -ge $NUM_FILES ]; then
+              NEXT_FILE=0
+              NEXT_FOLDER=$(( (LAST_FOLDER + 1) % NUM_FOLDERS ))
+          fi
+
+          echo $NEXT_FOLDER > .tracker/last_folder_index
+          echo $NEXT_FILE > .tracker/last_file_index
 
       - name: Commit and Push Changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add daily/* .tracker/last_index
+          git add daily/* .tracker/last_folder_index .tracker/last_file_index
           git commit -m "Daily commit: $(date +%F)" || echo "No changes to commit"
           git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main
