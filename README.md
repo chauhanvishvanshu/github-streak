@@ -6,45 +6,51 @@ Automatically maintain your GitHub contribution streak by committing `.cpp` file
 
 ## Features
 
-- Sequentially picks `.cpp` files from `staging/` folder  
-- Copies them to `daily/` folder daily  
-- Auto commit & push using GitHub Actions  
-- Contribution graph updates automatically  
-- No manual token required  
+* Sequentially picks `.cpp` files from `staging/` folder
+* Copies them to `daily/` folder daily
+* Auto commit & push using GitHub Actions
+* Contribution graph updates automatically
+* No manual token required
 
 ---
-## DO This - for your profile graph updation 
-file name - daily_commit.yml
-Commit and Push Changes instructions update karna
 
+## Update Profile Graph
+
+**File:** `.github/workflows/daily_commit.yml`
+
+Update commit instructions:
+
+```bash
+# Default by GitHub Actions bot
 git config user.name "github-actions[bot]"
 git config user.email "github-actions[bot]@users.noreply.github.com"
 
-➡ Isko replace karein:
-//with your name and verfied email
+# Replace with your name and verified email
 git config user.name "Vishvanshu Chauhan"
 git config user.email "chauhanvishvanshu@gmail.com"
+```
+
+---
 
 ## Folder Structure
 
+```
 .
 ├── .github
-│ └── workflows
-│ └── daily_commit.yml
+│   └── workflows
+│       └── daily_commit.yml
 ├── staging/
-│ ├── file1.cpp
-│ ├── file2.cpp
-│ └── ...
+│   ├── file1.cpp
+│   ├── file2.cpp
+│   └── ...
 ├── daily/
-│ └── (auto-generated files)
+│   └── (auto-generated files)
 └── README.md
+```
 
-yaml
-Copy code
-
-- **staging/** → Add your `.cpp` files  
-- **daily/** → Auto-filled by workflow  
-- **.github/workflows/daily_commit.yml** → Workflow config  
+* **staging/** → Add your `.cpp` files
+* **daily/** → Auto-filled by workflow
+* **.github/workflows/daily_commit.yml** → Workflow config
 
 ---
 
@@ -53,89 +59,86 @@ Copy code
 ### Step 1: Fork / Clone Repo
 
 ```bash
-git clone https://github.com/<username>/github-streak.git
+git clone https://github.com/chauhanvishvanshu/github-streak.git
 cd github-streak
-Step 2: Add .cpp Files
-Place all your .cpp files inside staging/ folder
+```
 
-Ensure at least one file exists
+### Step 2: Add `.cpp` Files
 
-Step 3: Push Workflow to GitHub
-bash
-Copy code
+Place all your `.cpp` files inside the `staging/` folder.
+Ensure at least one file exists.
+
+### Step 3: Push Workflow to GitHub
+
+```bash
 git add .
 git commit -m "Initial commit: setup GitHub streak project"
 git push -u origin main
-Step 4: Enable GitHub Actions
-Go to your repository → Settings → Actions → General
+```
 
-Workflow permissions → Set to Read and write
+### Step 4: Enable GitHub Actions
 
-Actions → Allow all actions and reusable workflows
+1. Go to your repository → **Settings → Actions → General**
+2. Workflow permissions → Set to **Read and write**
+3. Actions → **Allow all actions and reusable workflows**
 
-Step 5: Run Workflow Manually (First Time)
-Go to Actions tab → Daily Auto Commit (Sequential)
+### Step 5: Run Workflow Manually (First Time)
 
-Click Run workflow → branch main
+* Go to **Actions** tab → **Daily Auto Commit (Sequential)**
+* Click **Run workflow** → branch **main**
+* Wait for workflow to complete
 
-Wait for workflow to complete
+**Expected Result:**
 
-Expected Result:
+* `daily/` folder now has the first file
+* Commit `"Daily commit: YYYY-MM-DD"` created
+* Contribution graph reflects the commit
 
-daily/ folder now has the first file
+### Step 6: Automatic Daily Run
 
-Commit "Daily commit: YYYY-MM-DD" created
+Workflow scheduled to run daily at **12:31 PM IST** (changeable in cron schedule).
 
-Contribution graph reflects the commit
+| Local Time Zone  | Equivalent UTC Cron                        |
+| ---------------- | ------------------------------------------ |
+| IST (India)      | `1 7 * * *` → 12:31 PM IST                 |
+| EST (US Eastern) | `1 2 * * *` → 2:01 AM EST                  |
+| PST (US Pacific) | `1 23 * * *` → 11:01 PM PST (previous day) |
+| UTC              | `1 7 * * *` → 7:01 AM UTC                  |
 
-Step 6: Automatic Daily Run
-Workflow scheduled to run daily at 10 AM UTC (changeable in cron schedule)
+### Step 7: Sequential File Picking
 
-Cron Example (UTC)
+* `.tracker/last_index` keeps track of the last picked file
+* Each day workflow picks the next `.cpp` file
+* Loops back after reaching the last file
 
-Local Time (IST)	UTC Cron
-3 PM IST	'30 9 * * *'
-10 AM IST	'30 4 * * *'
+### Step 8: Verify Workflow & Graph
 
-Step 7: Sequential File Picking
-.tracker/last_index keeps track of the last picked file
+* **Actions Tab** → Workflow run status
+* **daily/** folder → New file added
+* **Commits Tab** → `"Daily commit: YYYY-MM-DD"`
+* **Contribution Graph** → Green square for the day
 
-Each day workflow picks the next .cpp file
+### Step 9: Optional Tips
 
-Loops back after reaching the last file
+* Add `daily/.gitkeep` to make empty folder visible from start
+* Ensure branch protection allows workflow push or temporarily disable
+* All future commits run automatically, maintaining streak
 
-Step 8: Verify Workflow & Graph
-Actions Tab → Workflow run status
+---
 
-daily/ folder → New file added
+## Workflow Diagram
 
-Commits Tab → "Daily commit: YYYY-MM-DD"
-
-Contribution Graph → Green square for the day
-
-Step 9: Optional Tips
-Add daily/.gitkeep to make empty folder visible from start
-
-Ensure branch protection allows workflow push or temporarily disable
-
-All future commits run automatically, maintaining streak
-
-Workflow Diagram
-pgsql
-Copy code
-staging/ (.cpp files) 
+```
+staging/ (.cpp files)
         │
         ▼
 GitHub Actions Workflow (daily_commit.yml)
         │
         ├─ Pick next .cpp file (sequential)
-        │
         ├─ Copy to daily/
-        │
         ├─ Commit changes
-        │
         └─ Push to GitHub (GITHUB_TOKEN)
         │
         ▼
-
 Contribution Graph updated daily
+```
