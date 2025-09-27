@@ -13,6 +13,17 @@ Automatically maintain your GitHub contribution streak by committing `.cpp` file
 - No manual token required  
 
 ---
+## DO This - for your profile graph updation 
+file name - daily_commit.yml
+Commit and Push Changes instructions update karna
+
+git config user.name "github-actions[bot]"
+git config user.email "github-actions[bot]@users.noreply.github.com"
+
+➡ Isko replace karein:
+//with your name and verfied email
+git config user.name "Vishvanshu Chauhan"
+git config user.email "chauhanvishvanshu@gmail.com"
 
 ## Folder Structure
 
@@ -126,4 +137,5 @@ GitHub Actions Workflow (daily_commit.yml)
         └─ Push to GitHub (GITHUB_TOKEN)
         │
         ▼
+
 Contribution Graph updated daily
